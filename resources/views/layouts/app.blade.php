@@ -12,7 +12,7 @@
     <body>
 
         {{-- ナビゲーションバー --}}
-        @include('commons.navbar')      // navbar.blade.phpを読み込む
+        @include('commons.navbar')
 
         <div class="container mx-auto">
             {{-- エラーメッセージ --}}
