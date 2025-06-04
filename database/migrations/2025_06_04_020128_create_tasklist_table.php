@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('tasks', function (Blueprint $table) {
             $table->id();
             $table->string('content');    // contentカラム追加
+            $table->string('status', 10); // statusカラム追加 (VARCHAR(10))
             $table->timestamps();
         });
     }

@@ -34,13 +34,20 @@ class TasksController extends Controller
     // postでtasks/にアクセスされた場合の「新規登録処理」
     public function store(Request $request)
     {
+        // バリデーション
+        $request->validate([
+            'content' => 'required|max:255',
+            'status' => 'required|max:10',
+        ]);
+
         // メッセージを作成
         $task = new Task;
         $task->content = $request->content;
+        $task->status = $request->status;
         $task->save();
 
-        // トップページへリダイレクトさせる
-        return redirect('/');
+        // 詳細ページへリダイレクトさせる
+        return redirect()->route('tasks.show', $task->id);
     }
 
     // getでtasks/idにアクセスされた場合の「取得表示処理」
@@ -61,7 +68,7 @@ class TasksController extends Controller
         // idの値でメッセージを検索して取得
         $task = Task::findOrFail($id);
 
-        // メッセージ編集ビューでそれを表示
+        // メッセージ編集ビューを表示
         return view('tasks.edit', [
             'task' => $task,
         ]);
@@ -70,14 +77,21 @@ class TasksController extends Controller
     // putまたはpatchでtasks/idにアクセスされた場合の「更新処理」
     public function update(Request $request, $id)
     {
+        // バリデーション
+        $request->validate([
+            'content' => 'required|max:255',
+            'status' => 'required|max:10',
+        ]);
+
         // idの値でメッセージを検索して取得
         $task = Task::findOrFail($id);
         // メッセージを更新
         $task->content = $request->content;
+        $task->status = $request->status;
         $task->save();
 
-        // トップページへリダイレクトさせる
-        return redirect('/');
+        // 詳細ページへリダイレクトさせる
+        return redirect()->route('tasks.show', $task->id);
     }
 
     // deleteでtasks/idにアクセスされた場合の「削除処理」

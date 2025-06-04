@@ -16,6 +16,19 @@
                         <span class="label-text">メッセージ:</span>
                     </label>
                     <input type="text" name="content" value="{{ $task->content }}" class="input input-bordered w-full">
+                    @error('content')
+                        <div class="text-red-500">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="form-control my-4">
+                    <label for="status" class="label">
+                        <span class="label-text">ステータス:</span>
+                    </label>
+                    <input type="text" name="status" value="{{ $task->status }}" class="input input-bordered w-full">
+                    @error('status')
+                        <div class="text-red-500">{{ $message }}</div>
+                    @enderror
                 </div>
 
             <button type="submit" class="btn btn-primary btn-outline">更新</button>
