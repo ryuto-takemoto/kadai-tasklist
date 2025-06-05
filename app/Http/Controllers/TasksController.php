@@ -11,13 +11,13 @@ class TasksController extends Controller
     // getでtasks/にアクセスされた場合の「一覧表示処理」
     public function index()
     {
-        // メッセージ一覧を取得
-        $tasks = Task::all();         // 追加
+      // メッセージ一覧を取得
+        $tasks = Task::orderBy('id', 'desc')->paginate(25);
 
         // メッセージ一覧ビューでそれを表示
-        return view('tasks.index', [     // 追加
-            'tasks' => $tasks,        // 追加
-        ]);                                 // 追加
+        return view('tasks.index', [
+            'tasks' => $tasks,
+        ]);
     }
 
     // getでtasks/createにアクセスされた場合の「新規登録画面表示処理」
