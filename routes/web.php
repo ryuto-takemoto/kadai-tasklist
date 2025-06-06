@@ -15,3 +15,6 @@ use App\Http\Controllers\TasksController;
 
 Route::get('/', [TasksController::class, 'index']);
 Route::resource('tasks', TasksController::class);
+Route::get('/healthcheck', function () {
+    return response('OK', 200);
+});

@@ -2,7 +2,8 @@ FROM ubuntu:22.04
 
 LABEL maintainer="Taylor Otwell"
 
-ARG WWWGROUP
+#ARG WWWGROUP
+ARG WWWGROUP=1000
 ARG NODE_VERSION=20
 ARG MYSQL_CLIENT="mysql-client"
 ARG POSTGRES_VERSION=15
@@ -11,7 +12,7 @@ WORKDIR /var/www/html
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV TZ=UTC
-ENV SUPERVISOR_PHP_COMMAND="/usr/bin/php -d variables_order=EGPCS /var/www/html/artisan serve --host=0.0.0.0 --port=80"
+ENV SUPERVISOR_PHP_COMMAND="/usr/bin/php -d variables_order=EGPCS /var/www/html/artisan serve --host=0.0.0.0 --port=8080"
 ENV SUPERVISOR_PHP_USER="sail"
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
@@ -30,7 +31,7 @@ RUN apt-get update \
        php8.3-intl php8.3-readline \
        php8.3-ldap \
        #php8.3-msgpack php8.3-igbinary php8.3-redis php8.3-swoole \
-       php8.3-msgpack php8.3-igbinary php8.3-redis
+       php8.3-msgpack php8.3-igbinary php8.3-redis \
        php8.3-memcached php8.3-pcov php8.3-imagick php8.3-xdebug \
     && curl -sLS https://getcomposer.org/installer | php -- --install-dir=/usr/bin/ --filename=composer \
     && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
@@ -54,14 +55,20 @@ RUN apt-get update \
 
 RUN setcap "cap_net_bind_service=+ep" /usr/bin/php8.3
 
-RUN groupadd --force -g $WWWGROUP sail
-RUN useradd -ms /bin/bash --no-user-group -g $WWWGROUP -u 1337 sail
+#RUN groupadd --force -g $WWWGROUP sail
+RUN groupadd --force -g $WWWGROUP www-data
 
-COPY start-container /usr/local/bin/start-container
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY php.ini /etc/php/8.3/cli/conf.d/99-sail.ini
+#RUN useradd -ms /bin/bash --no-user-group -g $WWWGROUP -u 1337 sail
+RUN useradd -ms /bin/bash --no-user-group -g www-data -u 1337 sail
+
+COPY docker/8.3/start-container /usr/local/bin/start-container
+COPY docker/8.3/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY docker/8.3/php.ini /etc/php/8.3/cli/conf.d/99-sail.ini
+COPY . /var/www/html
 RUN chmod +x /usr/local/bin/start-container
+RUN chown -R www-data:www-data storage bootstrap/cache
+RUN chmod -R 775 storage bootstrap/cache
 
-EXPOSE 80/tcp
+EXPOSE 8080/tcp
 
 ENTRYPOINT ["start-container"]

@@ -1,0 +1,42 @@
+# fly.toml app configuration file generated for tasklist-nameless-hill-4526 on 2025-06-06T10:47:20+09:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'tasklist-muddy-rain-6017'
+primary_region = 'nrt'
+
+[build]
+  dockerfile = './docker/8.3/Dockerfile'
+  [build.args]
+    PHP_VERSION = '8.3' # Sail のバージョンに合わせる
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+  [http_service.concurrency]
+    hard_limit = 25
+    soft_limit = 20
+    type = "requests"
+
+  [[http_service.checks]]
+    path = "/healthcheck" # ヘルスチェックのエンドポイント
+    interval = "30s"       # ヘルスチェックの間隔 (15s -> 30s)
+    timeout = "5s"        # タイムアウト (2s -> 5s)
+    grace_period = "10s"    # 起動後の猶予期間 (5s -> 10s)
+
+[env]
+  APP_URL = 'https://tasklist-muddy-rain-6017.fly.dev'
+  APP_NAME = 'Laravel'
+  APP_DEBUG = false
+  DB_CONNECTION = 'pgsql'
+  DATABASE_URL = 'postgresql://postgres.uibcfkrqcixxplrktdxz:EAMplQWZG83kp8BZ@aws-0-ap-northeast-1.pooler.supabase.com:5432/postgres'
+
+[[vm]] # fly launch コマンドの際に入力した情報のとおりになっていることを確認
+  size = 'shared-cpu-1x'
+  memory = '256mb'
