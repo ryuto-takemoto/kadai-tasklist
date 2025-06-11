@@ -17,7 +17,7 @@ class RouteServiceProvider extends ServiceProvider
      *
      * @var string
      */
-    public const HOME = '/dashboard';
+    public const HOME = '/tasks'; // 認証後のリダイレクト先をタスク一覧に変更
 
     /**
      * Define your route model bindings, pattern filters, and other route configuration.

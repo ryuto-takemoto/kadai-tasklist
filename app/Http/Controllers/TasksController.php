@@ -3,18 +3,33 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-
-use App\Models\Task;    // 追加
+use App\Models\Task;
+use Illuminate\Support\Facades\Auth; // Authファサードを追加
 
 class TasksController extends Controller
 {
+    // トップページ
+    public function top()
+    {
+        if (Auth::check()) {
+            // ログイン済みの場合、タスク一覧を表示
+            $tasks = Task::where('user_id', Auth::id())->orderBy('id', 'desc')->paginate(25);
+            return view('tasks.index', [
+                'tasks' => $tasks,
+            ]);
+        } else {
+            // 未ログインの場合、dashboard.blade.php を表示
+            return view('dashboard');
+        }
+    }
+
     // getでtasks/にアクセスされた場合の「一覧表示処理」
     public function index()
     {
-      // メッセージ一覧を取得
-        $tasks = Task::orderBy('id', 'desc')->paginate(25);
+        // 認証済みユーザーのタスク一覧を取得
+        $tasks = Task::where('user_id', Auth::id())->orderBy('id', 'desc')->paginate(25);
 
-        // メッセージ一覧ビューでそれを表示
+        // タスク一覧ビューでそれを表示
         return view('tasks.index', [
             'tasks' => $tasks,
         ]);
@@ -40,10 +55,11 @@ class TasksController extends Controller
             'status' => 'required|max:10',
         ]);
 
-        // メッセージを作成
+        // タスクを作成
         $task = new Task;
         $task->content = $request->content;
         $task->status = $request->status;
+        $task->user_id = Auth::id(); // 認証済みユーザーのIDを保存
         $task->save();
 
         // 詳細ページへリダイレクトさせる
@@ -53,25 +69,35 @@ class TasksController extends Controller
     // getでtasks/idにアクセスされた場合の「取得表示処理」
     public function show($id)
     {
-        // idの値でメッセージを検索して取得
-        $task = Task::findOrFail($id);
+        try {
+            // 認証済みユーザーのタスクを取得
+            $task = Task::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
 
-        // メッセージ詳細ビューでそれを表示
-        return view('tasks.show', [
-            'task' => $task,
-        ]);
+            // タスク詳細ビューでそれを表示
+            return view('tasks.show', [
+                'task' => $task,
+            ]);
+        } catch (\Exception $e) {
+            // 他のユーザーのタスクにアクセスしようとした場合、トップページにリダイレクト
+            return redirect('/')->with('error', 'アクセス権がありません。');
+        }
     }
 
     // getでtasks/id/editにアクセスされた場合の「更新画面表示処理」
     public function edit($id)
     {
-        // idの値でメッセージを検索して取得
-        $task = Task::findOrFail($id);
+        try {
+            // 認証済みユーザーのタスクを取得
+            $task = Task::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
 
-        // メッセージ編集ビューを表示
-        return view('tasks.edit', [
-            'task' => $task,
-        ]);
+            // タスク編集ビューを表示
+            return view('tasks.edit', [
+                'task' => $task,
+            ]);
+        } catch (\Exception $e) {
+            // 他のユーザーのタスクにアクセスしようとした場合、トップページにリダイレクト
+            return redirect('/')->with('error', 'アクセス権がありません。');
+        }
     }
 
     // putまたはpatchでtasks/idにアクセスされた場合の「更新処理」
@@ -83,26 +109,38 @@ class TasksController extends Controller
             'status' => 'required|max:10',
         ]);
 
-        // idの値でメッセージを検索して取得
-        $task = Task::findOrFail($id);
-        // メッセージを更新
-        $task->content = $request->content;
-        $task->status = $request->status;
-        $task->save();
+        try {
+            // 認証済みユーザーのタスクを取得
+            $task = Task::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
 
-        // 詳細ページへリダイレクトさせる
-        return redirect()->route('tasks.show', $task->id);
+            // タスクを更新
+            $task->content = $request->content;
+            $task->status = $request->status;
+            $task->save();
+
+            // 詳細ページへリダイレクトさせる
+            return redirect()->route('tasks.show', $task->id);
+        } catch (\Exception $e) {
+            // 他のユーザーのタスクにアクセスしようとした場合、トップページにリダイレクト
+            return redirect('/')->with('error', 'アクセス権がありません。');
+        }
     }
 
     // deleteでtasks/idにアクセスされた場合の「削除処理」
     public function destroy(string $id)
     {
-        // idの値でメッセージを検索して取得
-        $task = Task::findOrFail($id);
-        // メッセージを削除
-        $task->delete();
+        try {
+            // 認証済みユーザーのタスクを取得
+            $task = Task::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
 
-        // トップページへリダイレクトさせる
-        return redirect('/');
+            // タスクを削除
+            $task->delete();
+
+            // トップページへリダイレクトさせる
+            return redirect('/')->with('success', 'タスクを削除しました。');
+        } catch (\Exception $e) {
+            // 他のユーザーのタスクにアクセスしようとした場合、トップページにリダイレクト
+            return redirect('/')->with('error', 'アクセス権がありません。');
+        }
     }
 }
